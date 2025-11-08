@@ -26,7 +26,90 @@
 <meta name="twitter:title" content="Win up to 150K Turkish Airlines Miles – Solve Our Riddles – Six Continents Challenge">
 <meta name="twitter:description" content="Solve riddles, explore six continents, and win travel prizes – including up to 150 K Turkish Airlines Miles!">
 <meta name="twitter:image" content="https://theaccidentalretiree.app/og/default.jpg">
-<script src="config.js"></script>
+<!-- Structured Data: WebApp + FAQ + HowTo (+ optional Video) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Six Continents Challenge",
+  "url": "https://theaccidentalretiree.app/",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any",
+  "description": "A global riddle hunt by The Accidental Retiree. Solve stages, climb the leaderboard, and win prizes, including up to 150,000 Turkish Airlines Miles.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "The Accidental Retiree"
+  },
+  "inLanguage": "en",
+  "potentialAction": {
+    "@type": "PlayAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://theaccidentalretiree.app/"
+    }
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {
+      "@type":"Question",
+      "name":"How do I play?",
+      "acceptedAnswer":{"@type":"Answer","text":"Create an account, start at Stage 1, watch the clue, enter the answer in lowercase (no spaces), and advance through all stages."}
+    },
+    {
+      "@type":"Question",
+      "name":"What can I win?",
+      "acceptedAnswer":{"@type":"Answer","text":"Stage prizes and a grand prize—up to 150,000 Turkish Airlines Miles—subject to official rules and eligibility."}
+    },
+    {
+      "@type":"Question",
+      "name":"Does it cost anything?",
+      "acceptedAnswer":{"@type":"Answer","text":"Playing is free. Optional Patreon membership may include bonus clues; it’s not required to win."}
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"HowTo",
+  "name":"How to Play the Six Continents Challenge",
+  "description":"Quick steps to start and advance in the riddle game.",
+  "totalTime":"PT5M",
+  "step":[
+    {"@type":"HowToStep","name":"Sign up","text":"Create your account and sign in."},
+    {"@type":"HowToStep","name":"Open Stage 1","text":"Watch the video and read the clue carefully."},
+    {"@type":"HowToStep","name":"Submit answer","text":"Type the answer in lowercase with no spaces, then submit."},
+    {"@type":"HowToStep","name":"Advance & repeat","text":"Unlock the next stage and continue until the finale."}
+  ],
+  "tool":[{"@type":"HowToTool","name":"Web or mobile browser"}],
+  "estimatedCost":{"@type":"MonetaryAmount","currency":"USD","value":"0"}
+}
+</script>
+
+<!-- Optional if your homepage embeds a YouTube trailer: replace VIDEO_URL -->
+<!-- Remove this block if you don’t have a trailer on the page -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"VideoObject",
+  "name":"Six Continents Challenge — Trailer",
+  "description":"Solve clues across six continents and win travel prizes.",
+  "thumbnailUrl":["https://theaccidentalretiree.app/og/default.jpg"],
+  "uploadDate":"2025-01-01",
+  "publisher":{"@type":"Organization","name":"The Accidental Retiree"},
+  "contentUrl":"https://theaccidentalretiree.app/",
+  "embedUrl":"VIDEO_URL"
+}
+</script>
+
+    <script src="config.js"></script>
     <style>
         * {
             margin: 0;
