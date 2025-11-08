@@ -77,7 +77,7 @@ export class ProgressManager {
         if (!this.userId) return { error: 'No user ID' };
 
         const { data, error } = await supabase
-            .from('app_5fe11f8255_user_progress')
+            .from('app_5bb89ee048_user_progress')
             .upsert({
                 user_id: this.userId,
                 solved_stages: solvedStages,
@@ -94,7 +94,7 @@ export class ProgressManager {
         if (!this.userId) return { data: null, error: 'No user ID' };
 
         const { data, error } = await supabase
-            .from('app_5fe11f8255_user_progress')
+            .from('app_5bb89ee048_activity_log')
             .select('solved_stages, first_riddle_solved')
             .eq('user_id', this.userId)
             .single();
