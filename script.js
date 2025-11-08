@@ -23,7 +23,11 @@ async function validateAnswer(stage, step, answer) {
         const result = await response.json();
         console.log(`[VALIDATE] API response:`, result);
         
-        return result;
+        return {
+    success: true,
+    correct: result.ok,
+    message: result.ok ? 'Correct!' : 'Incorrect answer'
+};
     } catch (error) {
         console.error(`[VALIDATE] API error:`, error);
         // Fallback to local validation for basic answers
