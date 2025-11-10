@@ -6,9 +6,10 @@ async function validateAnswer(stage, step, answer) {
         const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-answer`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            },
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+},
             body: JSON.stringify({
                 stage: stage,
                 step: step,
