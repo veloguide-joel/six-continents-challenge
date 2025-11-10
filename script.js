@@ -3,7 +3,7 @@ async function validateAnswer(stage, step, answer) {
     console.log(`[VALIDATE] Validating stage ${stage}, step ${step}, answer: ${answer}`);
     
     try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/app_5bb89ee048_validate_answer`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-answer`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
