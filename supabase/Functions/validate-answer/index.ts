@@ -1,202 +1,67 @@
-// validate-answer edge function
-// Validates riddle answers for the contest app
+// supabase/Functions/validate-answer/index.ts
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+// CORS helper
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
-function corsHeaders() {
-  return new Response(JSON.stringify({}), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
-    }
-  });
-}
-
-Deno.serve(async (req) => {
-  const requestId = crypto.randomUUID();
-  const log = (...args) => console.log(`[${requestId}]`, ...args);
-  const err = (...args) => console.error(`[${requestId}]`, ...args);
-
-  // CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      }
-    });
-  }
-
-  // Only allow POST
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({
-      ok: false,
-      error: 'Method not allowed'
-    }), {
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Parse JSON body
-    let body;
-    try {
-      body = await req.json();
-    } catch (e) {
-      log('Invalid JSON:', e);
-      return new Response(JSON.stringify({
-        ok: false,
-        error: 'Invalid JSON'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
+    const { stage, step, answer } = await req.json();
 
-    let { stage, step, answer } = body;
-    log('Incoming payload:', {
-      stage,
-      step,
-      answer
-    });
+    // Normalize exactly like the app
+    const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, "");
 
-    if (stage === undefined || answer === undefined) {
-      err('Missing required fields:', {
-        stage,
-        answer
-      });
-      return new Response(JSON.stringify({
-        ok: false,
-        error: 'Missing required fields: stage, answer'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
+    // Read salt from function secrets (we’ll confirm/set this next)
+    const ANSWER_SALT = Deno.env.get("ANSWER_SALT") || "";
+    console.log("[VAL] salt_end =", ANSWER_SALT.slice(-6));
 
-    // Normalize inputs
-    const nStage = parseInt(stage);
-    const nStep = step === undefined ? 1 : parseInt(step);
-    const normalizedAnswer = String(answer).toLowerCase().trim();
+    // Supabase client (Edge Functions normally have these envs available)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Answer key
-    const answers = {
-      '1': 'bucharest',
-      '2': 'mihaieminescu',
-      '3': 'thehobbit',
-      '4': 'gertrudebell',
-      '5a': 'thebookofthedead',
-      '5b': '436',
-      '6a': 'therivernile',
-      '6b': 'trabzon',
-      '7a': 'bondibay',
-      '7b': 'comrad7632',
-      '8a': 'captaincook',
-      '8b': '$60',
-      '9a': 'magnificent',
-      '9b': 'tbd',
-      '10a': 'gobeklitepe',
-      '10b': 'tbd',
-      '11a': 'liberty',
-      '11b': 'tbd',
-      '12a': 'roosevelt',
-      '12b': 'tbd',
-      '13a': 'cartagena',
-      '13b': 'tbd',
-      '14a': 'onehundred',
-      '14b': 'tbd',
-      '15a': 'templomayor',
-      '15b': 'tbd',
-      '16': 'thefinaldestination'
-      '16b': 'tbd',
-    };
+    // Fetch the correct row (table+column names from your DB)
+    const { data: row, error: rowErr } = await supabase
+      .from("stage_answers")
+      .select("stage, step, answer_hash")
+      .eq("stage", stage)
+      .eq("step", step)
+      .single();
 
-    // Build key (stages 5-15 have two parts)
-    let key = String(nStage);
-    if (nStage >= 5 && nStage <= 15) {
-      if (nStep !== 1 && nStep !== 2) {
-        err('Invalid step for two-part stage:', {
-          stage: nStage,
-          step: nStep
-        });
-        return new Response(JSON.stringify({
-          ok: false,
-          error: 'Invalid step for two-part stage'
-        }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      }
-      key = `${nStage}${nStep === 1 ? 'a' : 'b'}`;
-    }
+    console.log("[VAL] row =", row, "rowErr =", rowErr ? rowErr.message : null);
 
-    const correctAnswer = answers[key];
-    log('Validation check:', {
-      key,
-      correctAnswer,
-      normalizedAnswer,
-      match: correctAnswer === normalizedAnswer
-    });
+    const normalized = normalize(String(answer || ""));
+    console.log("[VAL] normalized =", normalized);
 
-    if (!correctAnswer) {
-      err('No answer found for key:', key);
-      return new Response(JSON.stringify({
-        ok: false,
-        error: 'Invalid stage/step combination'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
+    // Compute SHA-256 HEX of (salt + normalized)
+    const enc = new TextEncoder().encode(ANSWER_SALT + normalized);
+    const digest = await crypto.subtle.digest("SHA-256", enc);
+    const hex = Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
-    const isCorrect = correctAnswer === normalizedAnswer;
-    log('Answer validation result:', {
-      stage: nStage,
-      step: nStep,
-      correct: isCorrect
-    });
+    console.log("[VAL] computed_sha256_hex =", hex);
 
-    return new Response(JSON.stringify({
-      ok: isCorrect
-    }), {
+    const ok = !!row && hex === row.answer_hash;
+
+    return new Response(JSON.stringify({ ok }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
     });
-
-  } catch (error) {
-    err('Validation error:', error);
-    return new Response(JSON.stringify({
-      ok: false,
-      error: 'Internal server error'
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+  } catch (e) {
+    console.log("[VAL] error", String(e));
+    return new Response(JSON.stringify({ ok: false, error: "bad request" }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+      status: 200,
     });
   }
 });
